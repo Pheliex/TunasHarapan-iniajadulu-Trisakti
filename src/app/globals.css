@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+:root {
+  --jade: #5483B3;
+  --jade-dark: #2F5F8F;
+  --ink: #021024;
+  --pale: #F4F9FF;
+  --pale-soft: #EAF4FF;
+  --background: var(--pale);
+  --foreground: var(--ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--pale); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+::selection { background: var(--jade); color: var(--ink); }
+.display { font-family: Georgia, 'Times New Roman', serif; font-weight: 500; letter-spacing: -.055em; line-height: .92; }
+.eyebrow { font-size: 10px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; }
+.facility-card { overflow: hidden; border-radius: 1.75rem; }
+.facility-art { position: relative; min-height: 240px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+@media (min-width:768px){ .facility-art{min-height:280px;} }
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;} }
+.major-photo-slot { display:flex; align-items:center; justify-content:center; overflow:hidden; background:radial-gradient(circle at 50% 40%, rgba(84,131,179,.18), transparent 58%); }
+.major-photo-slot span { font-size:9px; letter-spacing:.24em; color:rgba(2,16,36,.35); font-weight:800; }
+.facility-photo-main { background-image:linear-gradient(135deg,rgba(2,16,36,.72),rgba(84,131,179,.55)),url('/images/school/building-main.png'); background-size:cover; background-position:center; }
+.facility-photo-secondary { background-image:linear-gradient(135deg,rgba(2,16,36,.66),rgba(84,131,179,.58)),url('/images/school/building-secondary.png'); background-size:cover; background-position:center; }
+.facility-photo-tertiary { background-image:linear-gradient(135deg,rgba(2,16,36,.68),rgba(84,131,179,.48)),url('/images/achievements/students-achievement.jpg'); background-size:cover; background-position:center; }
+.facility-art::after { content:''; position:absolute; inset:0; background:linear-gradient(0deg,rgba(2,16,36,.58),transparent 58%); }
+
+/* subtle editorial texture */
+.section-grid { background-image: linear-gradient(rgba(2,16,36,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(2,16,36,.045) 1px, transparent 1px); background-size: 44px 44px; }
+
+.partner-marquee { animation: partner-marquee 34s linear infinite; }
+.partner-marquee:hover { animation-play-state: paused; }
+@keyframes partner-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .partner-marquee { animation: none; } }
+
+/* continuous ambient motion */
+@keyframes twinkle { 0%,100% { opacity: .15; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.2); } }
+@keyframes gradient-pan { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.1); } }
+@keyframes orbit-spin { to { transform: rotate(360deg); } }
+@keyframes ring-ping { 0% { transform: scale(.85); opacity: .55; } 100% { transform: scale(1.7); opacity: 0; } }
+@keyframes grid-pan { to { background-position: 44px 44px; } }
+.animate-twinkle { animation: twinkle 3.2s ease-in-out infinite; }
+.animate-gradient-pan { background-size: 220% 220%; animation: gradient-pan 12s ease infinite; }
+.animate-kenburns { animation: kenburns 16s ease-in-out infinite alternate; }
+.animate-orbit { animation: orbit-spin 20s linear infinite; }
+.animate-ring { animation: ring-ping 2.6s cubic-bezier(0,0,.2,1) infinite; }
+.section-grid-animated {
+  background-image: linear-gradient(rgba(2,16,36,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(2,16,36,.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  animation: grid-pan 14s linear infinite;
+}
+.shine { position: relative; overflow: hidden; }
+.shine::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.35) 50%, transparent 58%);
+  transform: translateX(-130%); transition: transform 1s ease;
+}
+.shine:hover::after { transform: translateX(130%); }
+
+/* eye-candy utilities */
+@keyframes float-soft { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+@keyframes float-slow { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(0,-22px,0) scale(1.04); } }
+@keyframes blob-drift { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-24px) scale(1.08); } 66% { transform: translate(-24px,18px) scale(.96); } }
+@keyframes spin-slower { to { transform: rotate(360deg); } }
+@keyframes shimmer-pan { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes glow-pulse { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
+@keyframes scroll-dot { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(14px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
+.animate-float-soft { animation: float-soft 6s ease-in-out infinite; }
+.animate-float-slow { animation: float-slow 9s ease-in-out infinite; }
+.animate-blob { animation: blob-drift 14s ease-in-out infinite; }
+.animate-spin-slower { animation: spin-slower 22s linear infinite; }
+.animate-glow { animation: glow-pulse 4s ease-in-out infinite; }
+.animate-scroll-dot { animation: scroll-dot 1.8s ease-in-out infinite; }
+.shimmer-text {
+  background: linear-gradient(110deg, currentColor 30%, rgba(255,255,255,.9) 50%, currentColor 70%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer-pan 5s linear infinite;
+}
+.card-lift { transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s, border-color .5s; }
+.card-lift:hover { transform: translateY(-6px); }
+.img-zoom img { transition: transform .8s cubic-bezier(.22,1,.36,1), filter .8s; }
+.img-zoom:hover img { transform: scale(1.06); }
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-soft, .animate-float-slow, .animate-blob, .animate-spin-slower, .animate-glow, .animate-scroll-dot, .shimmer-text, .animate-twinkle, .animate-gradient-pan, .animate-kenburns, .animate-orbit, .animate-ring, .section-grid-animated { animation: none; }
+}

@@ -1,0 +1,120 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react';
+import LoadingScreen from '@/components/LoadingScreen';
+import HeroSection from '@/components/HeroSection';
+import StatsSection from '@/components/StatsSection';
+import Chatbot from '@/components/Chatbot';
+
+const nav = [
+  ['Profil', '#profil'],
+  ['Jurusan', '#jurusan'],
+  ['Fasilitas', '#fasilitas'],
+  ['Prestasi', '#prestasi'],
+  ['Partner', '#partner'],
+];
+
+function PageNav() {
+  const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [atTop, setAtTop] = useState(true);
+
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const current = window.scrollY;
+      setAtTop(current < 24);
+      if (current < 24 || current < last - 4) setVisible(true);
+      else if (current > last + 8) { setVisible(false); setOpen(false); }
+      last = current;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return <motion.header
+    initial={{ y: -90, opacity: 0 }}
+    animate={{ y: visible ? 0 : -110, opacity: visible ? 1 : 0 }}
+    transition={{ duration: .35, ease: 'easeOut' }}
+    className="fixed inset-x-0 top-0 z-40 px-4 pt-4 sm:px-6"
+  >
+    <div className={`mx-auto flex max-w-7xl items-center justify-between rounded-full border px-4 py-3 transition-all duration-300 sm:px-6 ${atTop ? 'border-[#021024]/10 bg-[#F4F9FF]/45 text-[#021024]' : 'border-white/20 bg-[#021024]/85 text-[#F4F9FF] shadow-xl backdrop-blur-xl'}`}>
+      <a href="#top" className="flex items-center gap-3"><span className="grid size-9 overflow-hidden rounded-full bg-white/90 p-1"><img src="/images/school/logo.png" alt="Logo SMK Telekomunikasi Tunas Harapan" className="h-full w-full object-contain" /></span><span className="hidden text-sm font-semibold tracking-wide sm:block">TUNAS HARAPAN</span></a>
+      <nav className="hidden items-center gap-1 md:flex">{nav.map(([label, href]) => <a key={href} href={href} className="rounded-full px-4 py-2 text-sm opacity-70 transition hover:bg-white/10 hover:opacity-100">{label}</a>)}</nav>
+      <span className="hidden rounded-full border border-current/15 px-4 py-2 text-[10px] font-bold uppercase tracking-[.16em] opacity-45 md:block">AI Assistant</span>
+      <button aria-label="Buka menu" onClick={() => setOpen(!open)} className="grid size-10 place-items-center rounded-full bg-black/5 md:hidden">{open ? <X size={18}/> : <Menu size={18}/>}</button>
+    </div>
+    <AnimatePresence>{open && <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-8}} className="mx-auto mt-2 max-w-7xl rounded-3xl border border-[#021024]/10 bg-[#F4F9FF]/95 p-3 text-[#021024] shadow-2xl backdrop-blur-xl md:hidden">{nav.map(([label, href]) => <a onClick={() => setOpen(false)} key={href} href={href} className="block rounded-2xl px-4 py-3 text-sm opacity-70 hover:bg-white/40 hover:opacity-100">{label}</a>)}<span className="mt-2 block rounded-2xl bg-[#021024]/5 px-4 py-3 text-center text-sm font-semibold opacity-55">Tunas AI tersedia di kanan bawah</span></motion.div>}</AnimatePresence>
+  </motion.header>;
+}
+
+function AboutSection() {
+  return <motion.section id="profil" initial={{opacity:0}} whileInView={{opacity:1}} viewport={{once:true, margin:'-100px'}} className="section-grid bg-[#F4F9FF] px-6 py-24 text-[#021024] sm:py-32">
+    <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
+      <motion.div initial={{x:-35,opacity:0}} whileInView={{x:0,opacity:1}} viewport={{once:true}} transition={{duration:.7}}><p className="eyebrow text-[#2F5F8F]">01 / PROFIL</p><h2 className="display mt-5 text-5xl sm:text-7xl">Sekolah yang bergerak bersama masa depan.</h2></motion.div>
+      <motion.div initial={{x:35,opacity:0}} whileInView={{x:0,opacity:1}} viewport={{once:true}} transition={{duration:.7,delay:.08}} className="grid gap-8 sm:grid-cols-2"><div><p className="text-sm font-bold uppercase tracking-[.18em] text-[#021024]/40">Tentang kami</p><p className="mt-4 text-lg leading-8 text-[#021024]/65">SMK Telekomunikasi Tunas Harapan membangun lingkungan belajar vokasi yang dekat dengan teknologi, karakter, dan kebutuhan industri.</p></div><div><p className="text-sm font-bold uppercase tracking-[.18em] text-[#021024]/40">Arah</p><p className="mt-4 text-lg leading-8 text-[#021024]/65">Belajar bukan sekadar mengejar nilai, tetapi menyiapkan karya, kompetensi, dan keberanian untuk masuk ke dunia nyata.</p></div></motion.div>
+    </div>
+  </motion.section>;
+}
+
+function NextGeneration() {
+  return <section className="relative min-h-[650px] overflow-hidden bg-[#021024] px-6 py-24 text-[#F4F9FF] sm:py-32">
+    <motion.div initial={{opacity:0,scale:.9}} whileInView={{opacity:1,scale:1}} viewport={{once:true}} transition={{duration:1}} className="absolute inset-0 bg-[radial-gradient(circle_at_72%_44%,rgba(84,131,179,.28),transparent_30%)]"/>
+    <motion.div initial={{opacity:0,x:-40}} whileInView={{opacity:1,x:0}} viewport={{once:true}} transition={{duration:.9}} className="absolute left-[-3%] top-[10%] size-48 rounded-full border border-[#F4F9FF]/10 bg-[#5483B3]/10 shadow-[0_0_100px_rgba(84,131,179,.18)]"/>
+    <div className="absolute left-[7%] top-24 size-2 rounded-full bg-[#F4F9FF]/80 shadow-[0_0_20px_5px_rgba(244,249,255,.12)]"/>
+    <div className="absolute right-[-3%] bottom-[-3%] w-[66%] max-w-5xl opacity-95">
+      <motion.img initial={{opacity:0,y:70}} whileInView={{opacity:.92,y:0}} viewport={{once:true}} transition={{duration:1.1,delay:.15}} src="/images/school/building-secondary.png" alt="Gedung sekolah" className="w-full object-contain brightness-[.78] grayscale contrast-125 drop-shadow-[0_-20px_50px_rgba(84,131,179,.12)]"/>
+      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#021024] via-[#021024]/45 to-transparent"/>
+    </div>
+    <div className="absolute right-[8%] top-[10%] text-right"><p className="text-[clamp(6rem,16vw,15rem)] font-black leading-none tracking-[-.09em] text-[#F4F9FF]/[.045]">TH</p><p className="mt-[-1rem] text-[9px] font-bold uppercase tracking-[.35em] text-[#F4F9FF]/25">LOGO / IDENTITY</p></div>
+    <div className="relative z-10 mx-auto flex min-h-[470px] max-w-7xl items-end"><motion.div initial={{opacity:0,y:35}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:.8}}><p className="eyebrow text-[#5483B3]">THE NEXT GENERATION</p><h2 className="display mt-5 max-w-3xl text-6xl sm:text-8xl">Sekolah yang <span className="text-[#F4F9FF]/35">terus bergerak.</span></h2><p className="mt-7 max-w-xl text-base leading-8 text-[#F4F9FF]/55">Teknologi berubah. Dunia berubah. Cara belajar pun ikut berkembang — tanpa kehilangan karakter dan identitas.</p></motion.div></div>
+  </section>;
+}
+
+function Programs() {
+  const items = [
+    ['01', 'PPLG', 'Pengembangan Perangkat Lunak dan Gim', '/images/majors/pplg.jpg'],
+    ['02', 'TJKT', 'Teknik Jaringan Komputer dan Telekomunikasi', '/images/majors/tjkt.jpg'],
+    ['03', 'DKV', 'Desain Komunikasi Visual', '/images/majors/dkv.jpg'],
+    ['04', 'TKR', 'Teknik Kendaraan Ringan', '/images/majors/tkr.jpg'],
+  ];
+  return <section id="jurusan" className="relative overflow-hidden bg-[#021024] px-6 py-24 text-[#F4F9FF] sm:py-32"><div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_70%_30%,rgba(84,131,179,.18),transparent_35%)]"/><div className="relative mx-auto max-w-7xl"><motion.div initial={{opacity:0,y:25}} whileInView={{opacity:1,y:0}} viewport={{once:true}} className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="eyebrow text-[#5483B3]">02 / PROGRAM KEAHLIAN</p><h2 className="display mt-5 text-5xl sm:text-7xl">Belajar yang <span className="text-[#F4F9FF]/35">punya arah.</span></h2></div><p className="max-w-sm text-sm leading-7 text-[#F4F9FF]/45">Empat bidang untuk mengeksplorasi software, jaringan, desain, dan otomotif.</p></motion.div><div className="mt-16 divide-y divide-[#F4F9FF]/10 border-y border-[#F4F9FF]/10">{items.map(([num,title,desc,image],i) => <motion.a initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true,margin:'-40px'}} transition={{duration:.45,delay:i*.07}} whileHover={{x:8}} href="#fasilitas" key={title} className="group relative grid grid-cols-[48px_1fr_auto] items-center gap-5 overflow-hidden py-8 sm:grid-cols-[80px_1fr_1.2fr_auto]"><div className="pointer-events-none absolute inset-y-0 right-12 w-72 opacity-0 transition duration-500 group-hover:opacity-100"><div className="absolute inset-0 bg-gradient-to-l from-[#5483B3]/20 to-transparent"/><div className="major-photo-slot absolute right-0 top-1/2 size-40 -translate-y-1/2 rounded-full border border-[#F4F9FF]/10 bg-[#F4F9FF]/[.03]"><img src={image} alt="" className="h-full w-full object-cover opacity-0 grayscale transition duration-500 group-hover:opacity-60"/><span className="absolute">PHOTO</span></div></div><span className="relative z-10 font-mono text-xs text-[#5483B3]/70">{num}</span><div className="relative z-10"><h3 className="text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h3><p className="mt-2 text-xs text-[#F4F9FF]/35 sm:hidden">{desc}</p></div><p className="relative z-10 hidden text-sm leading-6 text-[#F4F9FF]/40 sm:block">{desc}</p><ArrowUpRight className="relative z-10 text-[#F4F9FF]/25 transition group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[#5483B3]" /></motion.a>)}</div><p className="mt-5 text-[10px] uppercase tracking-[.2em] text-[#F4F9FF]/20">Photo slots ready — tambahkan foto jurusan nanti ke public/images/majors/</p></div></section>;
+}
+
+function Facilities() {
+  return <section id="fasilitas" className="bg-[#F4F9FF] px-6 py-24 text-[#021024] sm:py-32"><div className="mx-auto max-w-7xl"><div className="grid gap-5 md:grid-cols-[1fr_1.7fr] md:items-end"><div><p className="eyebrow text-[#2F5F8F]">03 / FASILITAS</p><h2 className="display mt-5 text-5xl sm:text-7xl">Ruang untuk <span className="text-black/35">mencoba.</span></h2></div><p className="max-w-xl text-base leading-8 text-[#021024]/55">Visual fasilitas sudah disiapkan sebagai slot foto. Nanti foto asli dapat dimasukkan ke folder public/images/facilities/ tanpa mengubah layout.</p></div><div className="mt-14 grid gap-4 md:grid-cols-12 md:grid-rows-2"><div className="facility-card md:col-span-7 md:row-span-2"><div className="facility-art facility-photo-main"><span className="relative z-10 text-7xl font-black tracking-[-.08em] text-white/90">LAB</span><span className="absolute bottom-6 left-6 z-10 text-sm uppercase tracking-[.2em] text-white/60">Computer & Creative Lab</span></div></div><div className="facility-card md:col-span-5"><div className="facility-art facility-photo-secondary"><span className="relative z-10 text-5xl font-black text-white/90">NET</span><span className="absolute bottom-6 left-6 z-10 text-sm uppercase tracking-[.2em] text-white/60">Network Lab</span></div></div><div className="facility-card md:col-span-5"><div className="facility-art facility-photo-tertiary"><span className="relative z-10 text-5xl font-black text-white/90">MEDIA</span><span className="absolute bottom-6 left-6 z-10 text-sm uppercase tracking-[.2em] text-white/60">Multimedia Studio</span></div></div></div></div></section>;
+}
+
+
+function Partners() {
+  const partners = ['MikroTik Academy', 'Suzuki', 'Cisco Networking Academy', 'LSP Teknologi Digital', 'LSP Global Otomotif', 'TEFA Network'];
+  const row = [...partners, ...partners];
+  return <section id="partner" className="overflow-hidden bg-[#052659] px-0 py-20 text-[#F4F9FF] sm:py-24">
+    <div className="mx-auto max-w-7xl px-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div><p className="eyebrow text-[#C1E8FF]">06 / INDUSTRY CONNECTIONS</p><h2 className="display mt-5 text-5xl sm:text-7xl">Connected to the <span className="text-[#C1E8FF]/45">real world.</span></h2></div>
+        <p className="max-w-sm text-sm leading-7 text-white/45">Jejaring industri, akademi, dan lembaga sertifikasi yang mendukung pengalaman belajar vokasi.</p>
+      </div>
+    </div>
+    <div className="relative mt-14 border-y border-white/10 py-7">
+      <div className="partner-marquee flex w-max items-center gap-4">
+        {row.map((name, i) => <div key={`${name}-${i}`} className="flex h-20 min-w-[210px] items-center justify-center rounded-2xl border border-white/10 bg-white/[.035] px-7 text-center transition hover:border-[#C1E8FF]/35 hover:bg-white/[.07]"><span className="text-sm font-semibold tracking-wide text-white/65">{name}</span></div>)}
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#052659] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#052659] to-transparent" />
+    </div>
+    <p className="mx-auto mt-5 max-w-7xl px-6 text-[9px] uppercase tracking-[.18em] text-white/20">Partner names are prepared as frontend content slots and should be verified against the school's latest official partnership list before final submission.</p>
+  </section>;
+}
+
+function Achievements() {
+  return <section id="prestasi" className="bg-[#F4F9FF] px-6 py-24 text-[#021024] sm:py-32"><div className="mx-auto max-w-7xl"><p className="eyebrow text-[#2F5F8F]">04 / PRESTASI</p><div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_.8fr]"><div><p className="display max-w-4xl text-5xl sm:text-7xl">Bukan hanya belajar. <span className="text-black/35">Bikin sesuatu.</span></p><p className="mt-8 max-w-2xl text-lg leading-8 text-[#021024]/55">Section ini siap diisi data prestasi, proyek siswa, sertifikasi, atau pencapaian sekolah yang benar-benar dimiliki tim.</p></div><div className="grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-black/10 bg-black/10"><div className="bg-[#F4F9FF] p-7"><p className="text-5xl font-semibold">01</p><p className="mt-3 text-xs uppercase tracking-[.18em] text-black/45">Project showcase</p></div><div className="bg-[#F4F9FF] p-7"><p className="text-5xl font-semibold">02</p><p className="mt-3 text-xs uppercase tracking-[.18em] text-black/45">Competition</p></div><div className="bg-[#F4F9FF] p-7"><p className="text-5xl font-semibold">03</p><p className="mt-3 text-xs uppercase tracking-[.18em] text-black/45">Certification</p></div><div className="bg-[#F4F9FF] p-7"><p className="text-5xl font-semibold">04</p><p className="mt-3 text-xs uppercase tracking-[.18em] text-black/45">Industry</p></div></div></div></div></section>;
+}
+
+export default function Home() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { const t = setTimeout(() => setLoading(false), 1500); return () => clearTimeout(t); }, []);
+  return <div id="top" className="overflow-x-hidden bg-[#F4F9FF]"><AnimatePresence>{loading && <LoadingScreen schoolName="SMK TELEKOMUNIKASI TUNAS HARAPAN" />}</AnimatePresence>{!loading && <><PageNav/><HeroSection/><AboutSection/><NextGeneration/><Programs/><Facilities/><StatsSection/><Partners/><Achievements/><footer className="bg-[#021024] px-6 pb-8 pt-16 text-[#F4F9FF]"><div className="mx-auto max-w-7xl"><div className="grid gap-10 border-b border-[#F4F9FF]/10 pb-12 md:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><p className="text-lg font-semibold">SMK TELEKOMUNIKASI<br/>TUNAS HARAPAN</p><p className="mt-4 max-w-sm text-sm leading-7 text-[#F4F9FF]/45">Membangun kompetensi, karakter, dan karya untuk generasi yang siap menghadapi masa depan.</p></div><div><p className="eyebrow text-[#5483B3]">EXPLORE</p><div className="mt-4 space-y-3 text-sm text-[#F4F9FF]/50"><a className="block hover:text-[#F4F9FF]" href="#profil">Profil</a><a className="block hover:text-[#F4F9FF]" href="#jurusan">Jurusan</a><a className="block hover:text-[#F4F9FF]" href="#fasilitas">Fasilitas</a></div></div><div><p className="eyebrow text-[#5483B3]">CONNECT</p><div className="mt-4 space-y-3 text-sm text-[#F4F9FF]/50"><span className="block">Sekolah · Semarang</span><span className="block">Informasi & pendaftaran</span><span className="block text-white/45">Tunas AI · kanan bawah</span></div></div><div><p className="eyebrow text-[#5483B3]">BACK TO TOP</p><a href="#top" className="mt-4 inline-flex items-center gap-2 text-sm text-[#F4F9FF]/55 hover:text-[#F4F9FF]">Kembali ke atas <ChevronDown className="rotate-180" size={16}/></a></div></div><div className="flex flex-col gap-3 pt-7 text-[10px] uppercase tracking-[.18em] text-[#F4F9FF]/30 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 SMK Telekomunikasi Tunas Harapan</span><span>Frontend concept · Next.js · Tailwind CSS</span></div></div></footer><Chatbot /></>}</div>;
+}
