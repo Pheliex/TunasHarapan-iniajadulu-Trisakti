@@ -1,12 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bot, Send, Sparkles, X, Minus } from "lucide-react";
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // State untuk menyimpan riwayat obrolan
+  const [chatHistory, setChatHistory] = useState([
+    { sender: "bot", text: "Halo. Saya R1ELS AI. Kamu bisa bertanya tentang jurusan, fasilitas, kegiatan, atau informasi sekolah." }
+  ]);
+
+  // Referensi untuk auto-scroll
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory, isLoading]);
+
+  // Fungsi mengirim pesan ke API Route
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim() || isLoading) return;
+
+    const userMsg = message;
+    setMessage(""); // Kosongkan input
+    
+    // Tambahkan pesan user ke layar
+    setChatHistory((prev) => [...prev, { sender: "user", text: userMsg }]);
+    setIsLoading(true);
+
+try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // TAMBAHKAN HISTORY DI SINI:
+        body: JSON.stringify({ 
+          message: userMsg,
+          history: chatHistory 
+        }),
+      });
+      const data = await res.json();
+      
+      // Tambahkan balasan AI ke layar
+      setChatHistory((prev) => [...prev, { sender: "bot", text: data.reply || "Maaf, AI tidak memberikan balasan." }]);
+    } catch (error) {
+      setChatHistory((prev) => [...prev, { sender: "bot", text: "Maaf, koneksi ke server terputus." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="fixed bottom-5 right-5 z-[80] sm:bottom-7 sm:right-7">
@@ -17,11 +67,12 @@ export default function Chatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.97 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="mb-4 w-[calc(100vw-2.5rem)] max-w-[390px] overflow-hidden rounded-[1.75rem] border border-[#7DA0CA]/30 bg-[#021024]/95 text-[#F4F9FF] shadow-2xl shadow-[#021024]/50 backdrop-blur-2xl"
+            className="mb-4 w-[calc(100vw-2.5rem)] max-w-[390px] overflow-hidden rounded-[1.75rem] border border-[#7DA0CA]/30 bg-[#021024]/95 text-[#F4F9FF] shadow-2xl shadow-[#021024]/50 backdrop-blur-2xl flex flex-col"
             role="dialog"
             aria-label="R1ELS AI"
           >
-            <div className="relative overflow-hidden border-b border-white/10 px-5 py-4">
+            {/* Header */}
+            <div className="relative overflow-hidden border-b border-white/10 px-5 py-4 shrink-0">
               <div className="absolute -right-10 -top-16 size-36 rounded-full bg-[#5483B3]/20 blur-2xl" />
               <div className="relative flex items-center gap-3">
                 <div className="grid size-11 place-items-center rounded-2xl border border-[#7DA0CA]/30 bg-[#052659] text-[#C1E8FF]">
@@ -52,45 +103,62 @@ export default function Chatbot() {
               </div>
             </div>
 
-            <div className="h-[320px] space-y-4 overflow-y-auto px-4 py-5">
-              <div className="flex gap-3">
-                <div className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-[#5483B3]/20 text-[#C1E8FF]">
-                  <Bot size={14} />
+            {/* Area Obrolan */}
+            <div className="h-[320px] space-y-4 overflow-y-auto px-4 py-5 scroll-smooth">
+              {chatHistory.map((chat, index) => (
+                chat.sender === "bot" ? (
+                  <div key={index} className="flex gap-3">
+                    <div className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-[#5483B3]/20 text-[#C1E8FF]">
+                      <Bot size={14} />
+                    </div>
+                    <div className="max-w-[82%] rounded-2xl rounded-tl-md border border-white/8 bg-white/[.06] px-4 py-3 text-sm leading-6 text-white/75 whitespace-pre-wrap">
+                      {chat.text}
+                    </div>
+                  </div>
+                ) : (
+                  <div key={index} className="ml-auto max-w-[78%] rounded-2xl rounded-tr-md bg-[#C1E8FF] px-4 py-3 text-sm font-medium leading-6 text-[#021024]">
+                    {chat.text}
+                  </div>
+                )
+              ))}
+              
+              {isLoading && (
+                <div className="flex gap-3">
+                  <div className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-[#5483B3]/20 text-[#C1E8FF]">
+                    <Sparkles size={14} className="animate-pulse" />
+                  </div>
+                  <div className="max-w-[82%] rounded-2xl rounded-tl-md border border-white/8 bg-white/[.06] px-4 py-3 text-sm leading-6 text-white/40 italic">
+                    Memproses...
+                  </div>
                 </div>
-                <div className="max-w-[82%] rounded-2xl rounded-tl-md border border-white/8 bg-white/[.06] px-4 py-3 text-sm leading-6 text-white/75">
-                  Halo. Saya R1ELS AI. Kamu bisa bertanya tentang jurusan,
-                  fasilitas, kegiatan, atau informasi sekolah.
-                </div>
-              </div>
-              <div className="ml-auto max-w-[78%] rounded-2xl rounded-tr-md bg-[#C1E8FF] px-4 py-3 text-sm font-medium leading-6 text-[#021024]">
-                Chatbot siap diintegrasikan ke AI API oleh tim backend.
-              </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
 
+            {/* Form Input */}
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setMessage("");
-              }}
-              className="border-t border-white/10 p-3"
+              onSubmit={handleSendMessage}
+              className="border-t border-white/10 p-3 shrink-0"
             >
               <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 p-2 focus-within:border-[#7DA0CA]/50">
                 <input
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Tulis pertanyaan..."
-                  className="min-w-0 flex-1 bg-transparent px-3 text-sm text-white outline-none placeholder:text-white/30"
+                  disabled={isLoading}
+                  className="min-w-0 flex-1 bg-transparent px-3 text-sm text-white outline-none placeholder:text-white/30 disabled:opacity-50"
                 />
                 <button
                   type="submit"
+                  disabled={isLoading}
                   aria-label="Kirim pesan"
-                  className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#C1E8FF] text-[#021024] transition hover:bg-white"
+                  className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#C1E8FF] text-[#021024] transition hover:bg-white disabled:opacity-50"
                 >
                   <Send size={16} />
                 </button>
               </div>
               <p className="mt-2 text-center text-[9px] uppercase tracking-[.16em] text-white/20">
-                Frontend UI · API ready
+                Powered by Gemini AI
               </p>
             </form>
           </motion.div>
