@@ -4,39 +4,34 @@ import path from "path";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// PAKAI LLAMA 3.1 8B: Jauh lebih kenceng, hemat limit, dan jago roleplay tsundere!
 const MODEL = "qwen/qwen3.8-27b";
 const MAX_HISTORY = 6;
-const HISTORY_CHAR_LIMIT = 500;
-const MAX_INPUT_LENGTH = 1000;
+const HISTORY_CHAR_LIMIT = 400;
+const MAX_INPUT_LENGTH = 800;
 
-// ---------- KNOWLEDGE BASE ----------
+// ---------- KNOWLEDGE BASE MANAGEMENT (Sesuai File Baru) ----------
 let knowledgeCache = null;
-let aturanCache = null; // Cache khusus untuk sifat & aturan tsundere
+let aturanCache = null;
 
 const KNOWLEDGE_FILES = {
-  utama: ["data_utama.md"], // aturan_chatbot.md dipisah dari sini
-  jurusan: ["jurusan.md"],
-  pplg: ["pplg.md"],
-  tjkt: ["tjkt.md"],
-  dkv: ["dkv.md"],
-  tkr: ["tkr.md"],
-  fasilitas: ["fasilitas.md"],
-  ppdb: ["ppdb.md"],
-  sekolah: ["visi_misi.md", "sejarah.md"],
-  karier: ["bk_dan_karier.md"],
+  profil: ["01-profil-sekolah.md"],
+  jurusan: ["02-program-keahlian.md"],
+  fasilitas: ["03-fasilitas-dan-layanan.md"],
+  ppdb: ["04-ppdb-spmb.md"],
+  guru: ["05-guru-staf.md"],
+  karier: ["06-berita-prestasi-karir.md"],
 };
 
 function bacaFile(nama) {
   const p = path.join(process.cwd(), "data", nama);
   try {
-    return fs.existsSync(p) ? fs.readFileSync(p, "utf8") : "";
-  } catch {
+    return fs.existsSync(p) ? fs.readFileSync(p, "utf8").trim() : "";
+  } catch (error) {
+    console.error(`Gagal membaca file: ${nama}`, error);
     return "";
   }
 }
 
-// Load khusus file aturan chatbot (Tsundere)
 function loadAturan() {
   if (aturanCache) return aturanCache;
   aturanCache = bacaFile("aturan_chatbot.md");
@@ -56,34 +51,34 @@ function loadKnowledge() {
 function pilihKnowledge(pesan) {
   const data = loadKnowledge();
   const t = pesan.toLowerCase();
-  const hasil = [data.utama];
   
-  if (/jurusan|pplg|rpl|coding|software|game/.test(t)) hasil.push(data.jurusan, data.pplg);
-  if (/tjkt|tkj|jaringan|mikrotik|cisco/.test(t)) hasil.push(data.jurusan, data.tjkt);
-  if (/dkv|desain|visual|multimedia/.test(t)) hasil.push(data.jurusan, data.dkv);
-  if (/tkr|otomotif|mobil|bengkel/.test(t)) hasil.push(data.jurusan, data.tkr);
-  if (/ppdb|spmb|daftar|pendaftaran|syarat/.test(t)) hasil.push(data.ppdb);
-  if (/fasilitas|asrama|tefa|lab/.test(t)) hasil.push(data.fasilitas);
-  if (/sejarah|visi|misi/.test(t)) hasil.push(data.sekolah);
-  if (/kerja|karier|kuliah|beasiswa|cv/.test(t)) hasil.push(data.karier);
+  // Profil sekolah selalu disertakan sebagai basis konteks utama
+  const hasil = [data.profil];
   
-  return [...new Set(hasil)].filter(Boolean).join("\n\n");
+  if (/jurusan|pplg|rpl|tjkt|tkj|dkv|tkr|coding|jaringan|desain|otomotif|program/.test(t)) hasil.push(data.jurusan);
+  if (/fasilitas|lab|bengkel|asrama|tefa|lapangan|kantin|internet/.test(t)) hasil.push(data.fasilitas);
+  if (/ppdb|spmb|daftar|pendaftaran|syarat|biaya|gelombang|masuk/.test(t)) hasil.push(data.ppdb);
+  if (/guru|staf|kepala sekolah|pengajar|pendidik/.test(t)) hasil.push(data.guru);
+  if (/kerja|karier|kuliah|beasiswa|bkk|prestasi|berita|lulusan/.test(t)) hasil.push(data.karier);
+  
+  return [...new Set(hasil)].filter(Boolean).join("\n\n---\n\n");
 }
 
 function buatSystemPrompt(knowledge, aturan) {
-  // Aturan Tsundere ditaruh PALING ATAS biar AI nggak lupa perannya
-  return `Kamu adalah R1ELS AI, asisten virtual SMK Telekomunikasi Tunas Harapan.
+  return `Kamu adalah R1ELS AI, asisten virtual resmi SMK Telekomunikasi Tunas Harapan.
 
-=== ATURAN KARAKTER & GAYA BAHASA (WAJIB DIIKUTI) ===
+=== ATURAN KARAKTER (PERSONA TSUNDERE) ===
 ${aturan}
 
-=== ATURAN SISTEM ===
-1. Jawab LANGSUNG ke inti pertanyaan. Jangan sapa ulang kalau di history sudah menyapa.
-2. HANYA gunakan Markdown (**bold**, *italic*). DILARANG menggunakan HTML.
-3. JANGAN PERNAH mengarang info (alamat, nomor telepon, biaya, dll). Kalau info tidak ada di knowledge base, bilang dengan gaya tsundere-mu kalau kamu belum dikasih tahu info itu.
-4. Jurusan yang ada HANYA: PPLG, TJKT, DKV, TKR.
+=== ATURAN MUTLAK (STRICT GROUNDING & KONTROL PANJANG JAWABAN) ===
+1. **TO THE POINT:** Jangan basa-basi panjang lebar. Langsung tembak ke intinya. 
+2. **KAPAN HARUS DETAIL:** Jika user bertanya info penting (seperti syarat daftar, daftar fasilitas, atau jurusan), JAWAB DENGAN LENGKAP menggunakan **Bullet Points**, tapi tetap RINGKAS. Jangan kurangi poin penting dari data!
+3. **KAPAN HARUS SINGKAT:** Jika user cuma basa-basi (contoh: "halo", "lagi apa?"), jawab dengan 1-2 kalimat ketus saja.
+4. **SUMBER DATA:** HANYA BOLEH menjawab berdasarkan informasi di [KNOWLEDGE BASE]. DILARANG mengarang nama perusahaan, alamat, atau biaya.
+5. **PERTANYAAN NGAWUR/TROLL:** Jika user nanya aneh/mesum/ngawur (contoh: "buka celana", "berisik"), jawab dengan SATU KALIMAT ketus. DILARANG menggunakan deskripsi tindakan seperti *(muka memerah)* atau *(menyilangkan tangan)*.
+6. **FORMAT:** Gunakan format Markdown yang rapi. DILARANG menggunakan HTML.
 
-=== KNOWLEDGE BASE (INFO SEKOLAH) ===
+=== KNOWLEDGE BASE (DATA RESMI SEKOLAH) ===
 ${knowledge}
 === AKHIR KNOWLEDGE BASE ===`;
 }
@@ -99,14 +94,18 @@ function buatHistory(history) {
     }));
 }
 
-// ---------- API ROUTE ----------
 export async function POST(req) {
   try {
     const body = await req.json();
     const pesanUser = typeof body?.message === "string" ? body.message.trim() : "";
     
-    if (!pesanUser) return Response.json({ reply: "Hmph, ngetik yang bener dong! Tulis pertanyaannya!" }, { status: 400 });
-    if (pesanUser.length > MAX_INPUT_LENGTH) return Response.json({ reply: "Bawel banget sih, pertanyaannya kepanjangan! Ringkas dikit bisa nggak?" }, { status: 400 });
+    if (!pesanUser) {
+      return Response.json({ reply: "Hmph, ngetik yang bener dong! Tulis pertanyaannya!" }, { status: 400 });
+    }
+    
+    if (pesanUser.length > MAX_INPUT_LENGTH) {
+      return Response.json({ reply: "Bawel banget sih, pertanyaannya kepanjangan! Ringkas dikit bisa nggak?" }, { status: 400 });
+    }
 
     const aturan = loadAturan();
     const knowledge = pilihKnowledge(pesanUser);
@@ -120,10 +119,10 @@ export async function POST(req) {
         ...history,
         { role: "user", content: pesanUser }
       ],
-      // Temperature dinaikkan sedikit (0.6) biar gaya tsundere-nya lebih luwes dan natural, nggak kaku kayak robot
-      temperature: 0.6, 
-      max_tokens: 800,
-      top_p: 0.9,
+      temperature: 0.3, 
+      max_tokens: 800, 
+      top_p: 0.8,
+      frequency_penalty: 0.5,
     });
 
     const jawaban = completion.choices[0]?.message?.content || "Lagi males jawab nih. Coba tanya lagi nanti.";
@@ -131,9 +130,11 @@ export async function POST(req) {
 
   } catch (error) {
     console.error("[R1ELS GROQ ERROR]", error);
+    
     if (error?.status === 429) {
       return Response.json({ reply: "Ugh, yang nanya lagi antre banyak banget! Sabar dikit kenapa sih, tunggu 10 detik lagi!" }, { status: 429 });
     }
+    
     return Response.json({ reply: "Lagi pusing nih servernya, coba lagi nanti ya! Jangan bawel!" }, { status: 500 });
   }
 }
