@@ -3,53 +3,39 @@
 import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bot, Send, Sparkles, X, Minus } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // State untuk menyimpan riwayat obrolan
   const [chatHistory, setChatHistory] = useState([
     { sender: "bot", text: "Halo. Saya R1ELS AI. Kamu bisa bertanya tentang jurusan, fasilitas, kegiatan, atau informasi sekolah." }
   ]);
 
-  // Referensi untuk auto-scroll
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory, isLoading]);
 
-  // Fungsi mengirim pesan ke API Route
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || isLoading) return;
 
     const userMsg = message;
-    setMessage(""); // Kosongkan input
-    
-    // Tambahkan pesan user ke layar
+    setMessage("");
     setChatHistory((prev) => [...prev, { sender: "user", text: userMsg }]);
     setIsLoading(true);
 
-try {
+    try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // TAMBAHKAN HISTORY DI SINI:
-        body: JSON.stringify({ 
-          message: userMsg,
-          history: chatHistory 
-        }),
+        body: JSON.stringify({ message: userMsg, history: chatHistory }),
       });
       const data = await res.json();
-      
-      // Tambahkan balasan AI ke layar
       setChatHistory((prev) => [...prev, { sender: "bot", text: data.reply || "Maaf, AI tidak memberikan balasan." }]);
     } catch (error) {
       setChatHistory((prev) => [...prev, { sender: "bot", text: "Maaf, koneksi ke server terputus." }]);
@@ -68,8 +54,6 @@ try {
             exit={{ opacity: 0, y: 18, scale: 0.97 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
             className="mb-4 w-[calc(100vw-2.5rem)] max-w-[390px] overflow-hidden rounded-[1.75rem] border border-[#7DA0CA]/30 bg-[#021024]/95 text-[#F4F9FF] shadow-2xl shadow-[#021024]/50 backdrop-blur-2xl flex flex-col"
-            role="dialog"
-            aria-label="R1ELS AI"
           >
             {/* Header */}
             <div className="relative overflow-hidden border-b border-white/10 px-5 py-4 shrink-0">
@@ -80,23 +64,13 @@ try {
                 </div>
                 <div>
                   <p className="font-semibold tracking-tight">R1ELS AI</p>
-                  <p className="text-[11px] text-[#C1E8FF]/55">
-                    Asisten virtual SMK Tunas Harapan
-                  </p>
+                  <p className="text-[11px] text-[#C1E8FF]/55">Asisten virtual SMK Tunas Harapan</p>
                 </div>
                 <div className="ml-auto flex items-center gap-1">
-                  <button
-                    aria-label="Minimalkan R1ELS AI"
-                    onClick={() => setOpen(false)}
-                    className="grid size-8 place-items-center rounded-full text-white/45 transition hover:bg-white/10 hover:text-white"
-                  >
+                  <button onClick={() => setOpen(false)} className="grid size-8 place-items-center rounded-full text-white/45 transition hover:bg-white/10 hover:text-white">
                     <Minus size={15} />
                   </button>
-                  <button
-                    aria-label="Tutup R1ELS AI"
-                    onClick={() => setOpen(false)}
-                    className="grid size-8 place-items-center rounded-full text-white/45 transition hover:bg-white/10 hover:text-white"
-                  >
+                  <button onClick={() => setOpen(false)} className="grid size-8 place-items-center rounded-full text-white/45 transition hover:bg-white/10 hover:text-white">
                     <X size={16} />
                   </button>
                 </div>
@@ -111,8 +85,9 @@ try {
                     <div className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-[#5483B3]/20 text-[#C1E8FF]">
                       <Bot size={14} />
                     </div>
-                    <div className="max-w-[82%] rounded-2xl rounded-tl-md border border-white/8 bg-white/[.06] px-4 py-3 text-sm leading-6 text-white/75 whitespace-pre-wrap">
-                      {chat.text}
+                    {/* CSS Tailwind khusus untuk merapikan list dan paragraf dari Markdown */}
+                    <div className="max-w-[82%] rounded-2xl rounded-tl-md border border-white/8 bg-white/[.06] px-4 py-3 text-sm leading-6 text-white/75 [&>p]:mb-2 last:[&>p]:mb-0 [&>ul]:list-disc [&>ul]:ml-5 [&>ul]:mb-2 [&>ol]:list-decimal [&>ol]:ml-5 [&>ol]:mb-2 [&>strong]:text-white">
+                      <ReactMarkdown>{chat.text}</ReactMarkdown>
                     </div>
                   </div>
                 ) : (
@@ -136,10 +111,7 @@ try {
             </div>
 
             {/* Form Input */}
-            <form
-              onSubmit={handleSendMessage}
-              className="border-t border-white/10 p-3 shrink-0"
-            >
+            <form onSubmit={handleSendMessage} className="border-t border-white/10 p-3 shrink-0">
               <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 p-2 focus-within:border-[#7DA0CA]/50">
                 <input
                   value={message}
@@ -148,18 +120,10 @@ try {
                   disabled={isLoading}
                   className="min-w-0 flex-1 bg-transparent px-3 text-sm text-white outline-none placeholder:text-white/30 disabled:opacity-50"
                 />
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  aria-label="Kirim pesan"
-                  className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#C1E8FF] text-[#021024] transition hover:bg-white disabled:opacity-50"
-                >
+                <button type="submit" disabled={isLoading} className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#C1E8FF] text-[#021024] transition hover:bg-white disabled:opacity-50">
                   <Send size={16} />
                 </button>
               </div>
-              <p className="mt-2 text-center text-[9px] uppercase tracking-[.16em] text-white/20">
-                Powered by Gemini AI
-              </p>
             </form>
           </motion.div>
         )}
@@ -169,34 +133,20 @@ try {
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.96 }}
         onClick={() => setOpen(!open)}
-        aria-label={open ? "Tutup R1ELS AI" : "Buka R1ELS AI"}
         className="group relative ml-auto grid size-14 place-items-center rounded-full border border-[#C1E8FF]/45 bg-[#052659] text-[#C1E8FF] shadow-[0_12px_45px_rgba(2,16,36,.45)] transition hover:border-[#C1E8FF]/80"
       >
         <span className="absolute inset-0 rounded-full border border-[#7DA0CA]/30 animate-ping [animation-duration:3s]" />
         <AnimatePresence mode="wait" initial={false}>
           {open ? (
-            <motion.span
-              key="x"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-            >
+            <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
               <X size={21} />
             </motion.span>
           ) : (
-            <motion.span
-              key="bot"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-            >
+            <motion.span key="bot" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
               <Bot size={21} />
             </motion.span>
           )}
         </AnimatePresence>
-        <span className="pointer-events-none absolute right-[calc(100%+10px)] hidden whitespace-nowrap rounded-full border border-[#7DA0CA]/20 bg-[#021024]/90 px-3 py-2 text-[10px] font-bold uppercase tracking-[.18em] text-[#C1E8FF] opacity-0 shadow-xl backdrop-blur-md transition group-hover:opacity-100 sm:block">
-          R1ELS AI
-        </span>
       </motion.button>
     </div>
   );
