@@ -28,4 +28,4 @@
 - Agama Kristen: Mistriyanto S.Th
 - Lainnya tercantum tanpa jabatan: Ivana Septia Rahaya S.Pd M.Pd; Sidiq Sudrajat Dwi Wibowo S.Psi; Listyorini Dika Utami; Amalia Ulfa Intan Ayu A.Md; Zulfatu Nikmah S.Pd (Guru)
 ## Catatan
-Nama Kepala Sekolah tidak tercantum di halaman yang tersedia.
+- Kepala sekolah SMK Telekomunikasi Tunas Harapan saat ini adalah Wisnu Handoko, S.T., M.T.
