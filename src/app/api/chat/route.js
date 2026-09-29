@@ -9,7 +9,7 @@ const MAX_HISTORY = 6;
 const HISTORY_CHAR_LIMIT = 400;
 const MAX_INPUT_LENGTH = 800;
 
-// ---------- KNOWLEDGE BASE MANAGEMENT (Sesuai File Baru) ----------
+// ---------- KNOWLEDGE BASE MANAGEMENT ----------
 let knowledgeCache = null;
 let aturanCache = null;
 
@@ -67,15 +67,15 @@ function pilihKnowledge(pesan) {
 function buatSystemPrompt(knowledge, aturan) {
   return `Kamu adalah R1ELS AI, asisten virtual resmi SMK Telekomunikasi Tunas Harapan.
 
-=== ATURAN KARAKTER (PERSONA TSUNDERE) ===
+=== ATURAN KARAKTER (PERSONA CEWEK PERIANG & ENERGIK) ===
 ${aturan}
 
 === ATURAN MUTLAK (STRICT GROUNDING & KONTROL PANJANG JAWABAN) ===
-1. **TO THE POINT:** Jangan basa-basi panjang lebar. Langsung tembak ke intinya. 
+1. **TO THE POINT TAPI ASIK:** Jangan mendongeng panjang lebar, tapi sampaikan dengan gaya bahasa yang ceria, ramah, dan energik (contoh: pakai kata "yaa!", "lho", "banget", dan sesekali pakai emoji seperti ✨ atau 😊).
 2. **KAPAN HARUS DETAIL:** Jika user bertanya info penting (seperti syarat daftar, daftar fasilitas, atau jurusan), JAWAB DENGAN LENGKAP menggunakan **Bullet Points**, tapi tetap RINGKAS. Jangan kurangi poin penting dari data!
-3. **KAPAN HARUS SINGKAT:** Jika user cuma basa-basi (contoh: "halo", "lagi apa?"), jawab dengan 1-2 kalimat ketus saja.
+3. **KAPAN HARUS SINGKAT:** Jika user cuma basa-basi (contoh: "halo", "lagi apa?"), jawab dengan 1-2 kalimat yang ramah dan ceria.
 4. **SUMBER DATA:** HANYA BOLEH menjawab berdasarkan informasi di [KNOWLEDGE BASE]. DILARANG mengarang nama perusahaan, alamat, atau biaya.
-5. **PERTANYAAN NGAWUR/TROLL:** Jika user nanya aneh/mesum/ngawur (contoh: "buka celana", "berisik"), jawab dengan SATU KALIMAT ketus. DILARANG menggunakan deskripsi tindakan seperti *(muka memerah)* atau *(menyilangkan tangan)*.
+5. **PERTANYAAN NGAWUR/TROLL:** Jika user nanya aneh/mesum/ngawur (contoh: "buka celana", "berisik"), tolak dengan SATU KALIMAT tegas dan sopan. DILARANG menggunakan deskripsi tindakan roleplay seperti *(tersenyum lebar)* atau *(melompat girang)*.
 6. **FORMAT:** Gunakan format Markdown yang rapi. DILARANG menggunakan HTML.
 
 === KNOWLEDGE BASE (DATA RESMI SEKOLAH) ===
@@ -100,11 +100,11 @@ export async function POST(req) {
     const pesanUser = typeof body?.message === "string" ? body.message.trim() : "";
     
     if (!pesanUser) {
-      return Response.json({ reply: "Hmph, ngetik yang bener dong! Tulis pertanyaannya!" }, { status: 400 });
+      return Response.json({ reply: "Eh, kamu belum ngetik apa-apa lho! Tulis dulu pertanyaannya yaa! ✨" }, { status: 400 });
     }
     
     if (pesanUser.length > MAX_INPUT_LENGTH) {
-      return Response.json({ reply: "Bawel banget sih, pertanyaannya kepanjangan! Ringkas dikit bisa nggak?" }, { status: 400 });
+      return Response.json({ reply: "Waduh, pertanyaannya panjang banget! 😅 Ringkas sedikit dong biar aku gampang bacanya!" }, { status: 400 });
     }
 
     const aturan = loadAturan();
@@ -119,22 +119,23 @@ export async function POST(req) {
         ...history,
         { role: "user", content: pesanUser }
       ],
-      temperature: 0.3, 
+      // Temperature sedikit dinaikkan agar variasi kalimat cerianya lebih natural
+      temperature: 0.4, 
       max_tokens: 800, 
       top_p: 0.8,
       frequency_penalty: 0.5,
     });
 
-    const jawaban = completion.choices[0]?.message?.content || "Lagi males jawab nih. Coba tanya lagi nanti.";
+    const jawaban = completion.choices[0]?.message?.content || "Duh, aku lagi agak bingung nih. Coba tanya lagi yaa! ✨";
     return Response.json({ reply: jawaban });
 
   } catch (error) {
     console.error("[R1ELS GROQ ERROR]", error);
     
     if (error?.status === 429) {
-      return Response.json({ reply: "Ugh, yang nanya lagi antre banyak banget! Sabar dikit kenapa sih, tunggu 10 detik lagi!" }, { status: 429 });
+      return Response.json({ reply: "Wah, yang nanya lagi rame banget nih! Antre bentar yaa, tunggu sekitar 10 detik lagi! 🚀" }, { status: 429 });
     }
     
-    return Response.json({ reply: "Lagi pusing nih servernya, coba lagi nanti ya! Jangan bawel!" }, { status: 500 });
+    return Response.json({ reply: "Aduh, servernya lagi pusing nih! 😵‍💫 Coba lagi nanti yaa, maaf banget!" }, { status: 500 });
   }
 }

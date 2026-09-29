@@ -30,7 +30,7 @@ export default function Chatbot() {
 
       sender: "bot", 
 
-      text: "Hmph, ada apa kesini? Kalau mau tanya soal SMK Telekomunikasi Tunas Harapan, buruan tanya! Aku nggak punya waktu seharian ya." 
+      text: "Halo! Aku R1ELS AI, asisten sekolah SMK Telekomunikasi Tunas Harapan. Kalau mau nanya sesuatu, ketik aja di bawah ya~~" 
 
     }
 
