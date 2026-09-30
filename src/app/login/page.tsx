@@ -10,8 +10,7 @@
  * Halaman ini cuma mengirim data ke endpoint tersebut lewat fetch().
  *
  * Yang perlu Anda siapkan:
- *   1. Taruh logo sekolah di  /public/logo-tunas-harapan.png
- *   2. Ubah LOGIN_ENDPOINT / DEFAULT_REDIRECT di bawah kalau route Anda berbeda.
+ *   1. Ubah LOGIN_ENDPOINT / DEFAULT_REDIRECT di bawah kalau route Anda berbeda.
  * ---------------------------------------------------------------------------
  */
 
