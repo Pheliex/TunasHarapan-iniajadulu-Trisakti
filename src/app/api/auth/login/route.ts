@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   // 1. Baca dan validasi input dari Front-End -------------------------------
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       cookies: {
         getAll() {
@@ -52,6 +53,14 @@ export async function POST(request: Request) {
       },
     }
   );
+
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email: loginEmail,
     password: password,
@@ -73,10 +82,10 @@ export async function POST(request: Request) {
   let redirectTo = "/dashboard"; // Default arahkan ke dashboard siswa
 
   // Ambil data role dari database (Tabel public)
-  const { data: userData } = await supabase
-    .from("users") // Ganti "users" dengan nama tabel Anda jika berbeda (misal: "profiles")
+  const { data: userData } = await supabaseAdmin
+    .from("users")
     .select("role")
-    .eq("id", data.user.id) // data.user.id adalah ID unik dari Supabase Auth
+    .eq("id", data.user.id)
     .single();
 
   if (userData) {
