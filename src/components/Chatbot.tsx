@@ -4,6 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Bot, Send, Sparkles, X, Minus, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
+// 1. TAMBAHKAN IMPORT ROUTER
+import { useRouter } from "next/navigation"; 
+
 type ChatMessage = {
   sender: "bot" | "user";
   text: string;
@@ -14,6 +17,9 @@ export default function Chatbot() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
+  // 2. INISIALISASI ROUTER
+  const router = useRouter(); 
+
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
     { 
       sender: "bot", 
@@ -23,10 +29,8 @@ export default function Chatbot() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll ke pesan terbawah setiap ada pesan baru
   useEffect(() => {
     if (open) {
-      // Sedikit timeout memastikan DOM sudah ter-render sebelum scroll
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 50);
@@ -38,7 +42,7 @@ export default function Chatbot() {
     if (!message.trim() || isLoading) return;
 
     const userMsg = message.trim();
-    setMessage(""); // Langsung kosongkan input biar responsif
+    setMessage(""); 
     setChatHistory((prev) => [...prev, { sender: "user", text: userMsg }]);
     setIsLoading(true);
 
@@ -51,10 +55,30 @@ export default function Chatbot() {
       
       const data = await res.json();
       
+      // 3. LOGIKA UNTUK MENANGKAP KODE REDIRECT
+      let botReply = data.reply || "Maaf, sistem sedang error.";
+      let redirectUrl = null;
+
+      // Mengecek apakah jawaban AI mengandung pola [REDIRECT:/url_tujuan]
+      const redirectMatch = botReply.match(/\[REDIRECT:(.*?)\]/);
+      if (redirectMatch) {
+        redirectUrl = redirectMatch[1].trim(); // Mengambil URL-nya saja (misal: /pplg)
+        botReply = botReply.replace(redirectMatch[0], "").trim(); // Menghapus kode tersebut dari tampilan layar
+      }
+
       setChatHistory((prev) => [
         ...prev, 
-        { sender: "bot", text: data.reply || "Maaf, sistem sedang error." }
+        { sender: "bot", text: botReply }
       ]);
+
+      // 4. EKSEKUSI PINDAH HALAMAN (Jika ada perintah redirect)
+      if (redirectUrl) {
+        setTimeout(() => {
+          router.push(redirectUrl);
+          setOpen(false); // Opsional: Otomatis menutup chatbox saat pindah halaman
+        }, 1500); // Jeda 1.5 detik agar tulisan "Ayo aku anter!" sempat terbaca
+      }
+
     } catch (error) {
       console.error("Chatbot Fetch Error:", error);
       setChatHistory((prev) => [
