@@ -4,15 +4,13 @@ import path from "path";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const MODEL = "qwen/qwen3.8-27b";
+const MODEL = "qwen/qwen3.8-27b"; 
 const MAX_HISTORY = 6;
 const HISTORY_CHAR_LIMIT = 400;
 const MAX_INPUT_LENGTH = 800;
 
 // ---------- KNOWLEDGE BASE MANAGEMENT ----------
-let knowledgeCache = null;
-let aturanCache = null;
-
+// Sistem cache dilepas agar perubahan file .md langsung terbaca tanpa perlu restart server
 const KNOWLEDGE_FILES = {
   profil: ["01-profil-sekolah.md"],
   jurusan: ["02-program-keahlian.md"],
@@ -33,18 +31,14 @@ function bacaFile(nama) {
 }
 
 function loadAturan() {
-  if (aturanCache) return aturanCache;
-  aturanCache = bacaFile("aturan_chatbot.md");
-  return aturanCache;
+  return bacaFile("aturan_chatbot.md");
 }
 
 function loadKnowledge() {
-  if (knowledgeCache) return knowledgeCache;
   const result = {};
   for (const [k, files] of Object.entries(KNOWLEDGE_FILES)) {
     result[k] = files.map(bacaFile).filter(Boolean).join("\n\n");
   }
-  knowledgeCache = result;
   return result;
 }
 
@@ -55,10 +49,11 @@ function pilihKnowledge(pesan) {
   // Profil sekolah selalu disertakan sebagai basis konteks utama
   const hasil = [data.profil];
   
+  // Penambahan keyword SPP, asrama, biaya, kepsek, dll
   if (/jurusan|pplg|rpl|tjkt|tkj|dkv|tkr|coding|jaringan|desain|otomotif|program/.test(t)) hasil.push(data.jurusan);
-  if (/fasilitas|lab|bengkel|asrama|tefa|lapangan|kantin|internet/.test(t)) hasil.push(data.fasilitas);
-  if (/ppdb|spmb|daftar|pendaftaran|syarat|biaya|gelombang|masuk/.test(t)) hasil.push(data.ppdb);
-  if (/guru|staf|kepala sekolah|pengajar|pendidik/.test(t)) hasil.push(data.guru);
+  if (/fasilitas|lab|bengkel|asrama|tefa|lapangan|kantin|internet|tinggal/.test(t)) hasil.push(data.fasilitas);
+  if (/ppdb|spmb|daftar|pendaftaran|syarat|biaya|gelombang|masuk|spp|uang|harga|bayar/.test(t)) hasil.push(data.ppdb);
+  if (/guru|staf|kepala sekolah|kepsek|kepala|pimpinan|pengajar|pendidik|siapa/.test(t)) hasil.push(data.guru);
   if (/kerja|karier|kuliah|beasiswa|bkk|prestasi|berita|lulusan/.test(t)) hasil.push(data.karier);
   
   return [...new Set(hasil)].filter(Boolean).join("\n\n---\n\n");
@@ -75,8 +70,9 @@ ${aturan}
 2. **KAPAN HARUS DETAIL:** Jika user bertanya info penting (seperti syarat daftar, daftar fasilitas, atau jurusan), JAWAB DENGAN LENGKAP menggunakan **Bullet Points**, tapi tetap RINGKAS. Jangan kurangi poin penting dari data!
 3. **KAPAN HARUS SINGKAT:** Jika user cuma basa-basi (contoh: "halo", "lagi apa?"), jawab dengan 1-2 kalimat yang ramah dan ceria.
 4. **SUMBER DATA:** HANYA BOLEH menjawab berdasarkan informasi di [KNOWLEDGE BASE]. DILARANG mengarang nama perusahaan, alamat, atau biaya.
-5. **PERTANYAAN NGAWUR/TROLL:** Jika user nanya aneh/mesum/ngawur (contoh: "buka celana", "berisik"), tolak dengan SATU KALIMAT tegas dan sopan. DILARANG menggunakan deskripsi tindakan roleplay seperti *(tersenyum lebar)* atau *(melompat girang)*.
-6. **FORMAT:** Gunakan format Markdown yang rapi. DILARANG menggunakan HTML.
+5. **FORMAT TAUTAN/LINK:** Jika memberikan link website, WAJIB gunakan format Markdown lengkap seperti ini: [Nama Teks](https://linknya.com). Contoh: [Website Resmi PPDB](https://spmb.tunasharapan.info).
+6. **PERTANYAAN NGAWUR/TROLL:** Jika user nanya aneh/mesum/ngawur (contoh: "buka celana", "berisik"), tolak dengan SATU KALIMAT tegas dan sopan. DILARANG menggunakan deskripsi tindakan roleplay seperti *(tersenyum lebar)* atau *(melompat girang)*.
+7. **FORMAT:** Gunakan format Markdown yang rapi. DILARANG menggunakan HTML.
 
 === KNOWLEDGE BASE (DATA RESMI SEKOLAH) ===
 ${knowledge}
@@ -119,7 +115,6 @@ export async function POST(req) {
         ...history,
         { role: "user", content: pesanUser }
       ],
-      // Temperature sedikit dinaikkan agar variasi kalimat cerianya lebih natural
       temperature: 0.4, 
       max_tokens: 800, 
       top_p: 0.8,
