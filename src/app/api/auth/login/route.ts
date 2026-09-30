@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
   // 2. Setup Supabase Client untuk Server & Cookies -------------------------
   // Ini cara resmi Next.js + Supabase untuk membaca & menulis cookie session.
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

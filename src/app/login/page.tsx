@@ -9,8 +9,8 @@
  *   -> app/api/auth/login/route.ts  (server side)
  * Halaman ini cuma mengirim data ke endpoint tersebut lewat fetch().
  *
- * Yang perlu Anda siapkan:
- *   1. Ubah LOGIN_ENDPOINT / DEFAULT_REDIRECT di bawah kalau route Anda berbeda.
+ * Yang perlu Anda siapkan
+ *   2. Ubah LOGIN_ENDPOINT / DEFAULT_REDIRECT di bawah kalau route Anda berbeda.
  * ---------------------------------------------------------------------------
  */
 
