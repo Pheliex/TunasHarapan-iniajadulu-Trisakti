@@ -3,14 +3,13 @@ import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bot, Send, Sparkles, X, Minus, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { useRouter } from "next/navigation"; 
+import Link from "next/link"; // Menggunakan Link Next.js agar perpindahan halaman mulus
 
 type ChatMessage = {
   sender: "bot" | "user";
   text: string;
 };
 
-// --- DAFTAR QUICK REPLIES ---
 const QUICK_REPLIES = [
   "Info PPDB 2027 📝",
   "Ada jurusan apa aja? 🎯",
@@ -23,8 +22,6 @@ export default function Chatbot() {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
-  const router = useRouter(); 
 
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
     { 
@@ -43,11 +40,10 @@ export default function Chatbot() {
     }
   }, [chatHistory, isLoading, open]);
 
-  // --- FUNGSI UTAMA UNTUK MENGIRIM PESAN ---
   const sendMessageToBot = async (userMsg: string) => {
     if (!userMsg.trim() || isLoading) return;
     
-    setMessage(""); // Langsung kosongkan input form
+    setMessage(""); 
     setChatHistory((prev) => [...prev, { sender: "user", text: userMsg }]);
     setIsLoading(true);
 
@@ -59,29 +55,12 @@ export default function Chatbot() {
       });
       
       const data = await res.json();
-      
-      let botReply = data.reply || "Maaf, sistem sedang error.";
-      let redirectUrl = null;
-
-      // Mengecek apakah jawaban AI mengandung kode [REDIRECT:/url]
-      const redirectMatch = botReply.match(/\[REDIRECT:(.*?)\]/);
-      if (redirectMatch) {
-        redirectUrl = redirectMatch[1].trim(); 
-        botReply = botReply.replace(redirectMatch[0], "").trim(); 
-      }
+      const botReply = data.reply || "Maaf, sistem sedang error.";
 
       setChatHistory((prev) => [
         ...prev, 
         { sender: "bot", text: botReply }
       ]);
-
-      // Mengeksekusi auto-redirect jika ada
-      if (redirectUrl) {
-        setTimeout(() => {
-          router.push(redirectUrl);
-          setOpen(false); 
-        }, 1500); 
-      }
 
     } catch (error) {
       console.error("Chatbot Fetch Error:", error);
@@ -94,7 +73,6 @@ export default function Chatbot() {
     }
   };
 
-  // Handler untuk Submit Form Input biasa
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessageToBot(message);
@@ -111,7 +89,7 @@ export default function Chatbot() {
             transition={{ duration: 0.25, ease: "easeOut" }}
             className="mb-4 w-[calc(100vw-2.5rem)] max-w-[390px] overflow-hidden rounded-[1.75rem] border border-[#7DA0CA]/30 bg-[#021024]/95 text-[#F4F9FF] shadow-2xl shadow-[#021024]/50 backdrop-blur-2xl flex flex-col"
           >
-            {/* --- Header --- */}
+            {/* Header */}
             <div className="relative overflow-hidden border-b border-white/10 px-5 py-4 shrink-0">
               <div className="absolute -right-10 -top-16 size-36 rounded-full bg-[#5483B3]/20 blur-2xl pointer-events-none" />
               <div className="relative flex items-center gap-3">
@@ -134,11 +112,10 @@ export default function Chatbot() {
               </div>
             </div>
 
-            {/* --- Area Obrolan --- */}
+            {/* Area Obrolan */}
             <div className="h-[350px] space-y-4 overflow-y-auto px-4 py-5 scroll-smooth custom-scrollbar">
               {chatHistory.map((chat, index) => (
                 chat.sender === "bot" ? (
-                  // Bubble Chat Bot
                   <motion.div 
                     initial={{ opacity: 0, x: -10 }} 
                     animate={{ opacity: 1, x: 0 }} 
@@ -157,14 +134,34 @@ export default function Chatbot() {
                     >
                       <ReactMarkdown
                         components={{
-                          a: ({ node, ...props }) => (
-                            <a 
-                              {...props} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="text-[#7DA0CA] font-medium underline underline-offset-2 hover:text-[#C1E8FF] transition-colors"
-                            />
-                          ),
+                          a: ({ node, href, children, ...props }) => {
+                            // Cek apakah link mengarah ke halaman internal (dimulai dengan "/")
+                            const isInternal = href && href.startsWith("/");
+                            
+                            if (isInternal) {
+                              return (
+                                <Link 
+                                  href={href} 
+                                  className="text-[#7DA0CA] font-medium underline underline-offset-2 hover:text-[#C1E8FF] transition-colors"
+                                >
+                                  {children}
+                                </Link>
+                              );
+                            }
+                            
+                            // Jika link eksternal (https://...), buka di tab baru
+                            return (
+                              <a 
+                                href={href} 
+                                {...props} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-[#7DA0CA] font-medium underline underline-offset-2 hover:text-[#C1E8FF] transition-colors"
+                              >
+                                {children}
+                              </a>
+                            );
+                          },
                         }}
                       >
                         {chat.text}
@@ -172,7 +169,6 @@ export default function Chatbot() {
                     </div>
                   </motion.div>
                 ) : (
-                  // Bubble Chat User
                   <motion.div 
                     initial={{ opacity: 0, x: 10 }} 
                     animate={{ opacity: 1, x: 0 }} 
@@ -184,7 +180,6 @@ export default function Chatbot() {
                 )
               ))}
               
-              {/* Animasi Loading / Typing Indicator */}
               {isLoading && (
                 <div className="flex gap-3">
                   <div className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-[#5483B3]/20 text-[#C1E8FF]">
@@ -199,26 +194,30 @@ export default function Chatbot() {
                   </div>
                 </div>
               )}
-              {/* Anchor untuk auto-scroll */}
               <div ref={messagesEndRef} className="h-1" />
             </div>
 
-            {/* --- QUICK REPLIES BAR (Hanya muncul jika obrolan masih kosong/awal) --- */}
-            {chatHistory.length === 1 && !isLoading && (
-              <div className="flex gap-2 overflow-x-auto px-4 pb-3 scroll-smooth [&::-webkit-scrollbar]:hidden shrink-0 bg-[#021024]">
-                {QUICK_REPLIES.map((text, i) => (
-                  <button
-                    key={i}
-                    onClick={() => sendMessageToBot(text)}
-                    className="whitespace-nowrap rounded-xl border border-[#7DA0CA]/30 bg-[#052659]/50 px-3 py-1.5 text-[11px] font-medium text-[#C1E8FF] transition hover:bg-[#7DA0CA]/30 hover:text-white"
-                  >
-                    {text}
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Quick Replies Bar */}
+            <div className="flex gap-2 overflow-x-auto px-4 pb-3 pt-1 scroll-smooth shrink-0 bg-[#021024]
+              [&::-webkit-scrollbar]:h-1.5 
+              [&::-webkit-scrollbar-track]:bg-transparent 
+              [&::-webkit-scrollbar-thumb]:rounded-full 
+              [&::-webkit-scrollbar-thumb]:bg-[#7DA0CA]/30 
+              hover:[&::-webkit-scrollbar-thumb]:bg-[#7DA0CA]/60"
+            >
+              {QUICK_REPLIES.map((text, i) => (
+                <button
+                  key={i}
+                  disabled={isLoading}
+                  onClick={() => sendMessageToBot(text)}
+                  className="whitespace-nowrap rounded-xl border border-[#7DA0CA]/30 bg-[#052659]/50 px-3 py-1.5 text-[11px] font-medium text-[#C1E8FF] transition hover:bg-[#7DA0CA]/30 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {text}
+                </button>
+              ))}
+            </div>
 
-            {/* --- Form Input --- */}
+            {/* Form Input */}
             <form onSubmit={handleFormSubmit} className="border-t border-white/10 p-3 shrink-0 bg-[#021024]">
               <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/30 p-1.5 focus-within:border-[#C1E8FF]/50 transition-colors">
                 <input
@@ -243,7 +242,7 @@ export default function Chatbot() {
         )}
       </AnimatePresence>
 
-      {/* --- Floating Action Button (FAB) --- */}
+      {/* Floating Action Button (FAB) */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
