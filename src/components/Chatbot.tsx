@@ -17,13 +17,10 @@ export default function Chatbot() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // 2. INISIALISASI ROUTER
-  const router = useRouter(); 
-
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
-    { 
-      sender: "bot", 
-      text: "Halo! Aku R1ELS AI, asisten sekolah SMK Telekomunikasi Tunas Harapan. Kalau mau nanya sesuatu, ketik aja di bawah ya~~" 
+    {
+      sender: "bot",
+      text: "Halo! Aku R1ELS AI, asisten sekolah SMK Telekomunikasi Tunas Harapan. Kalau mau nanya sesuatu, ketik aja di bawah ya~~"
     }
   ]);
 
@@ -52,23 +49,12 @@ export default function Chatbot() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMsg, history: chatHistory }),
       });
-      
+
       const data = await res.json();
       
-      // 3. LOGIKA UNTUK MENANGKAP KODE REDIRECT
-      let botReply = data.reply || "Maaf, sistem sedang error.";
-      let redirectUrl = null;
-
-      // Mengecek apakah jawaban AI mengandung pola [REDIRECT:/url_tujuan]
-      const redirectMatch = botReply.match(/\[REDIRECT:(.*?)\]/);
-      if (redirectMatch) {
-        redirectUrl = redirectMatch[1].trim(); // Mengambil URL-nya saja (misal: /pplg)
-        botReply = botReply.replace(redirectMatch[0], "").trim(); // Menghapus kode tersebut dari tampilan layar
-      }
-
       setChatHistory((prev) => [
         ...prev, 
-        { sender: "bot", text: botReply }
+        { sender: "bot", text: data.reply || "Maaf, sistem sedang error." }
       ]);
 
       // 4. EKSEKUSI PINDAH HALAMAN (Jika ada perintah redirect)
@@ -82,7 +68,7 @@ export default function Chatbot() {
     } catch (error) {
       console.error("Chatbot Fetch Error:", error);
       setChatHistory((prev) => [
-        ...prev, 
+        ...prev,
         { sender: "bot", text: "Ck, koneksinya putus nih! Coba cek internetmu sendiri deh." }
       ]);
     } finally {
@@ -113,8 +99,8 @@ export default function Chatbot() {
                   <p className="text-[11px] text-[#C1E8FF]/55">Asisten Virtual Sekolah</p>
                 </div>
                 <div className="ml-auto flex items-center gap-1">
-                  <button 
-                    onClick={() => setOpen(false)} 
+                  <button
+                    onClick={() => setOpen(false)}
                     title="Tutup Chat"
                     className="grid size-8 place-items-center rounded-full text-white/45 transition hover:bg-white/10 hover:text-white"
                   >
@@ -129,10 +115,10 @@ export default function Chatbot() {
               {chatHistory.map((chat, index) => (
                 chat.sender === "bot" ? (
                   // Bubble Chat Bot
-                  <motion.div 
-                    initial={{ opacity: 0, x: -10 }} 
-                    animate={{ opacity: 1, x: 0 }} 
-                    key={index} 
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    key={index}
                     className="flex gap-3"
                   >
                     <div className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-[#5483B3]/20 text-[#C1E8FF]">
@@ -140,19 +126,19 @@ export default function Chatbot() {
                     </div>
                     {/* Styling Markdown yang Diperketat */}
                     <div className="max-w-[82%] rounded-2xl rounded-tl-md border border-white/8 bg-white/[.06] px-4 py-3 text-sm leading-relaxed text-white/80
-                      prose prose-invert prose-sm 
-                      [&>p]:mb-2 last:[&>p]:mb-0 
-                      [&>ul]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 
-                      [&>ol]:mb-3 [&>ol]:list-decimal [&>ol]:pl-5 
+                      prose prose-invert prose-sm
+                      [&>p]:mb-2 last:[&>p]:mb-0
+                      [&>ul]:mb-3 [&>ul]:list-disc [&>ul]:pl-5
+                      [&>ol]:mb-3 [&>ol]:list-decimal [&>ol]:pl-5
                       [&>strong]:text-[#C1E8FF] [&>strong]:font-semibold"
                     >
                       <ReactMarkdown
                         components={{
                           a: ({ node, ...props }) => (
-                            <a 
-                              {...props} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
+                            <a
+                              {...props}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="text-[#7DA0CA] font-medium underline underline-offset-2 hover:text-[#C1E8FF] transition-colors"
                             />
                           ),
@@ -164,17 +150,17 @@ export default function Chatbot() {
                   </motion.div>
                 ) : (
                   // Bubble Chat User
-                  <motion.div 
-                    initial={{ opacity: 0, x: 10 }} 
-                    animate={{ opacity: 1, x: 0 }} 
-                    key={index} 
+                  <motion.div
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    key={index}
                     className="ml-auto max-w-[78%] rounded-2xl rounded-tr-md bg-[#C1E8FF] px-4 py-3 text-sm font-medium leading-relaxed text-[#021024] break-words"
                   >
                     {chat.text}
                   </motion.div>
                 )
               ))}
-              
+
               {/* Animasi Loading / Typing Indicator */}
               {isLoading && (
                 <div className="flex gap-3">
@@ -206,9 +192,9 @@ export default function Chatbot() {
                   autoComplete="off"
                   className="min-w-0 flex-1 bg-transparent px-3 text-sm text-white outline-none placeholder:text-white/30 disabled:opacity-50"
                 />
-                <button 
-                  type="submit" 
-                  disabled={isLoading || !message.trim()} 
+                <button
+                  type="submit"
+                  disabled={isLoading || !message.trim()}
                   className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#C1E8FF] text-[#021024] transition hover:bg-white disabled:opacity-30 disabled:hover:bg-[#C1E8FF]"
                 >
                   <Send size={15} className={isLoading ? "opacity-0" : "opacity-100"} />
@@ -228,7 +214,7 @@ export default function Chatbot() {
       >
         {/* Efek Ping saat Chatbot tertutup */}
         {!open && <span className="absolute inset-0 rounded-full border border-[#7DA0CA]/50 animate-ping [animation-duration:3s]" />}
-        
+
         <AnimatePresence mode="wait" initial={false}>
           {open ? (
             <motion.span key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
